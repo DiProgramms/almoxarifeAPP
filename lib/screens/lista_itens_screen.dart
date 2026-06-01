@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
+
 import '../models/item.dart';
 import '../services/database_service.dart';
-
 import 'cadastro_screen.dart';
 
 class ListaItensScreen extends StatefulWidget {
     final String? tipoAlmoxarifado;
-    const ListaItensScreen({super.key, this.tipoAlmoxarifado});
+    final Future<void> Function()? onRefresh;
+
+    const ListaItensScreen({super.key, this.tipoAlmoxarifado, this.onRefresh});
 
     @override
     State<ListaItensScreen> createState() => _ListaItensScreenState();
@@ -15,20 +17,41 @@ class ListaItensScreen extends StatefulWidget {
 class _ListaItensScreenState extends State<ListaItensScreen>{
     final DatabaseService _db = DatabaseService();
     List<Item> _itens = [];
+    List<Item> _itensOriginais = [];
     final TextEditingController _searchController = TextEditingController();
 
     @override
     void initState(){
         super.initState();
-        _carregarItens();
+        carregarItens();
     }
 
-    Future<void> _carregarItens() async {
+    @override
+    void didUpdateWidget(covariant ListaItensScreen oldWidget) {
+        super.didUpdateWidget(oldWidget);
+        if (oldWidget.tipoAlmoxarifado != widget.tipoAlmoxarifado){
+            carregarItens();
+        }
+    }
+
+    Future<void> carregarItens() async {
         final itens = await _db.getItens(widget.tipoAlmoxarifado);
+        if (!mounted) return;
         setState((){
             _itens = itens;
+            _itensOriginais = List.from(itens);
         });
     }
+    
+    void _filtrarItens(String query) {
+        final q = query.toLowerCase();
+        setState(() {
+            _itens = _itensOriginais.where((item) {
+                return item.codigo.toLowerCase().contains(q) || 
+                    item.nome.toLowerCase().contains(q);
+             }).toList();
+            });
+        }
 
     @override
     Widget build(BuildContext context){
@@ -40,17 +63,17 @@ class _ListaItensScreenState extends State<ListaItensScreen>{
                         controller: _searchController,
                         decoration: InputDecoration(
                             labelText: 'Pesquisar por nome ou código',
-                            prefixIcon: Icon(Icons.search),
+                            prefixIcon: const Icon(Icons.search),
                             suffixIcon: IconButton(
-                                icon: Icon(Icons.clear),
+                                icon: const Icon(Icons.clear),
                                 onPressed: () {
                                     _searchController.clear();
-                                    _carregarItens();
+                                    _filtrarItens('');
                                 },
                             ),
                             border: OutlineInputBorder(),
                         ),
-                        onChanged: (value) => _filtrarItens(value),
+                        onChanged: _filtrarItens,
                     ),
                 ),
                 Expanded(
@@ -58,11 +81,12 @@ class _ListaItensScreenState extends State<ListaItensScreen>{
                         itemCount: _itens.length,
                         itemBuilder: (context, index) {
                             final item = _itens[index];
+                            final primeiraLetra = item.nome.isNotEmpty ? item.nome[0].toUpperCase() : '?';
                             return Card(
                                 margin: EdgeInsets.symmetric(horizontal: 16, vertical: 4),
                                 child: ListTile(
                                     leading: CircleAvatar(
-                                        child: Text(item.nome[0].toUpperCase()),
+                                        child: Text(primeiraLetra),
                                     ),
                                     title: Text(item.nome),
                                     subtitle: Text('${item.codigo} • ${item.quantidade} ${item.unidade}'),
@@ -88,15 +112,6 @@ class _ListaItensScreenState extends State<ListaItensScreen>{
         );
     }
 
-    void _filtrarItens(String query) {
-        setState(() {
-            _itens = _itens.where((item) =>
-                item.codigo.toLowerCase().contains(query.toLowerCase()) ||
-                item.nome.toLowerCase().contains(query.toLowerCase())
-            ).toList();
-        });
-    }
-
     void _editarItem(BuildContext context, Item item) async {
         final resultado = await Navigator.push(
             context,
@@ -104,14 +119,15 @@ class _ListaItensScreenState extends State<ListaItensScreen>{
                 builder: (context) => CadastroScreen(item: item),
             ),
         );
-
         if(resultado == true) {
-            _carregarItens();
+            await carregarItens();
+            await widget.onRefresh?.call();
         }
     }
 
     Future<void> _deletarItem(int id) async {
         await _db.deleteItem(id);
-        _carregarItens();
+        await carregarItens();
+        await widget.onRefresh?.call();
     }
 }

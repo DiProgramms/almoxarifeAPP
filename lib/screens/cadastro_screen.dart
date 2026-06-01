@@ -60,15 +60,18 @@ class _CadastroScreenState extends State<CadastroScreen> {
                                 decoration: InputDecoration(labelText: 'Unidade', prefixIcon: Icon(Icons.scale)),
                             ),
                             DropdownButtonFormField<String>(
-                                value: _tipo,
-                                decoration: InputDecoration(labelText: 'Tipo', prefixIcon: Icon(Icons.category)),
+                                value: ['industrial', 'alimenticio', 'agropecuario'].contains(_tipo) ? _tipo : 'industrial',
+                                decoration: const InputDecoration(labelText: 'Tipo', prefixIcon: Icon(Icons.category)),
 
-                                items: [
+                                items: const [
                                 DropdownMenuItem(value: 'industrial', child: Text('Industrial')),
                                 DropdownMenuItem(value: 'alimenticio', child: Text('Alimentício')),
                                 DropdownMenuItem(value: 'agropecuario', child: Text('Agropecuário')),
                                 ],
-                            onChanged: (value) => setState(() => _tipo = value!),
+                            onChanged: (value) {
+                                if (value == null) return;
+                                setState(() => _tipo = value);
+                                },
                             ),
                             SizedBox(height: 20),
                             ElevatedButton(
@@ -86,23 +89,25 @@ class _CadastroScreenState extends State<CadastroScreen> {
     Future<void> _salvarItem() async{
         if(_formKey.currentState!.validate()){
             final novaQuantidade = int.tryParse(_quantidadeController.text) ?? 0;
+
             final item = Item(
                 id: widget.item?.id,
                 codigo: _codigoController.text,
                 nome: _nomeController.text,
                 tipo: _tipo,
-                quantidade: int.tryParse(_quantidadeController.text) ?? 0,
+                quantidade: novaQuantidade,
                 unidade: _unidadeController.text,
-                dataEntrada: DateTime.now(),
+                dataEntrada: widget.item?.dataEntrada ?? DateTime.now(),
             );
 
             if(widget.item == null){
                 await DatabaseService.instance.insertItem(item);
             }else{
-                int diferenca = novaQuantidade - widget.item!.quantidade;
-
+                final diferenca = novaQuantidade - widget.item!.quantidade;
                 await DatabaseService.instance.updateItem(item);
-                await DatabaseService.instance.registrarMovimentacao(item.id!, diferenca, 'ajuste');
+                if(item.id != null) {
+                    await DatabaseService.instance.registrarMovimentacao(item.id!, diferenca, 'ajuste');
+                }
             }
 
             if(mounted) Navigator.pop(context, true);

@@ -1,10 +1,17 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
+
 import '../services/database_service.dart';
+import 'historico_screen.dart';
+
 
 class RelatorioScreen extends StatefulWidget {
     final String? tipoAlmoxarifado;
-    const RelatorioScreen({super.key, this.tipoAlmoxarifado});
+    final Future<void> Function()? onRefresh;
+
+    const RelatorioScreen({super.key, this.tipoAlmoxarifado, this.onRefresh});
 
     @override
     State<RelatorioScreen> createState() => _RelatorioScreenState();
@@ -12,24 +19,47 @@ class RelatorioScreen extends StatefulWidget {
 
 class _RelatorioScreenState extends State<RelatorioScreen> {
     List<Map<String, dynamic>> _dadosRelatorio = [];
+    final Random _random = Random();
+    final Map<String, Color> _cores = {};
 
     @override
     void initState(){
         super.initState();
-        _carregarDados();
+        carregarDados();
+    }
+    
+    @override
+    void didUpdateWidget(covariant RelatorioScreen oldWidget){
+        super.didUpdateWidget(oldWidget);
+        if (oldWidget.tipoAlmoxarifado != widget.tipoAlmoxarifado){
+            carregarDados();
+        }
     }
 
-    Future<void> _carregarDados() async {
+    Future<void> carregarDados() async {
         final dados = await DatabaseService.instance.getItensPorAlmoxarifado(widget.tipoAlmoxarifado);
-        setState((){
-            _dadosRelatorio = dados;
+
+        if (!mounted) return;
+            setState(() {
+                _dadosRelatorio = dados;
         });
     }
 
     @override
     Widget build(BuildContext context){
         return Scaffold(
-            appBar: AppBar(title: const Text('Relatórios de Estoque')),
+            appBar: AppBar(
+                title: const Text('Relatórios de Estoque'),
+                actions:[
+                IconButton(
+                    icon: const Icon(Icons.history),
+                    onPressed: (){
+                        Navigator.push(context, MaterialPageRoute(builder: (_) => const HistoricoScreen()),
+                            );
+                        },
+                    ),
+                ],            
+            ),
             body: _dadosRelatorio.isEmpty
                 ? const Center(child: Text("Sem dados para exibir"))
                 : Column(
@@ -39,11 +69,15 @@ class _RelatorioScreenState extends State<RelatorioScreen> {
                             child: PieChart(
                                 PieChartData(
                                     sections: _dadosRelatorio.map((item){
+                                        final nome = (item['nome'] ?? '').toString();
+                                        final total = (item['total'] as num).toDouble() ?? 0;
+                                        final tipo = (item['tipo'] ?? '').toString();
+
                                         return PieChartSectionData(
-                                            value: (item['total'] ?? 0).toDouble(),
-                                            title: (item['nome']),
+                                            value: total,
+                                            title: nome,
                                             radius: 100,
-                                            color: _corAleatoria(item['tipo']),
+                                            color: _corDoItem(nome),
                                         );
                                     }).toList(),
                                 ),
@@ -54,11 +88,14 @@ class _RelatorioScreenState extends State<RelatorioScreen> {
                                 itemCount: _dadosRelatorio.length,
                                 itemBuilder: (context,index){
                                     final item = _dadosRelatorio[index];
-                                    final tipo = item['tipo'] ?? 'Indefinido';
+                                    final nome = (item['nome'] ?? '').toString();
+                                    final tipo = (item['tipo'] ?? '').toString();
+                                    final total = (item['total'] as num?)?.toInt() ?? 0;
+
                                     return ListTile(
-                                        leading: Icon(Icons.circle, color: _corAleatoria(item['tipo'])),
-                                        title: Text(item['nome']),
-                                        trailing: Text('${item['total']} un'),
+                                        leading: Icon(Icons.circle, color: _corDoItem(nome)),
+                                        title: Text(nome),
+                                        trailing: Text('$total un'),
                                     );
                                 },
                             ),
@@ -68,9 +105,14 @@ class _RelatorioScreenState extends State<RelatorioScreen> {
         );
     }
 
-    Color _corAleatoria(String tipo) {
-        if (tipo == 'industrial') return Colors.blue;
-        if (tipo == 'alimenticio') return Colors.red;
-        return Colors.green;
+    Color _corDoItem(String nome) {
+        return _cores.putIfAbsent(nome, () {
+            return Color.fromARGB(
+            255,
+            100 + _random.nextInt(156),
+            100 + _random.nextInt(156),
+            100 + _random.nextInt(156),
+            );
+        });
     }
 }

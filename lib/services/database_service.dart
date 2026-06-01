@@ -31,12 +31,13 @@ class DatabaseService {
         await db.execute('''
         CREATE TABLE $tableItens (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
-            codigo TEXT UNIQUE,
+            codigo TEXT,
             nome TEXT,
             tipo TEXT,
             quantidade INTEGER,
             unidade TEXT,
-            data_entrada TEXT
+            data_entrada TEXT,
+            UNIQUE(codigo,tipo)
         )
         ''');
 

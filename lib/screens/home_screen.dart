@@ -5,26 +5,44 @@ import 'lista_itens_screen.dart';
 import 'relatorios_screen.dart';
 
 class HomeScreen extends StatefulWidget {
-    const HomeScreen ({super.key});
+    final bool isDarkMode;
+    final Future<void> Function() onToggleTheme;
+
+    const HomeScreen ({super.key, required this.isDarkMode, required this.onToggleTheme});
 
     @override
     State<HomeScreen> createState() => _HomeScreenState();
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+    
     int _selectedIndex = 0;
     String? _selectedAlmoxarifado;
+    int _refreshToken = 0;
+
+    Future <void> _recarregarTudo() async {
+        if (!mounted) return;
+        setState(() {
+            _refreshToken++;
+        });
+    }
 
     @override
     Widget build(BuildContext context) {
-        return Scaffold(
-            appBar: AppBar(
+
+            return Scaffold(
+                appBar: AppBar(
                 title: const Text('Almoxarife Pro'),
                 actions: [
+                    IconButton(
+                        icon: Icon(widget.isDarkMode ? Icons.dark_mode : Icons.light_mode),
+                        onPressed: widget.onToggleTheme,
+                    ),
                     PopupMenuButton<String>(
                         onSelected: (value) {
                             setState(() {
                                 _selectedAlmoxarifado = value;
+                                _refreshToken++;
                             });
                         },
                         itemBuilder: (BuildContext context) => <PopupMenuItem<String>>[
@@ -43,8 +61,8 @@ class _HomeScreenState extends State<HomeScreen> {
             body: IndexedStack(
                 index: _selectedIndex,
                 children: [
-                    ListaItensScreen(tipoAlmoxarifado: _selectedAlmoxarifado),
-                    RelatorioScreen(tipoAlmoxarifado: _selectedAlmoxarifado),
+                    ListaItensScreen(key: ValueKey('lista-$_refreshToken-$_selectedAlmoxarifado'), tipoAlmoxarifado: _selectedAlmoxarifado, onRefresh: _recarregarTudo),
+                    RelatorioScreen(key: ValueKey('relatorio-$_refreshToken-$_selectedAlmoxarifado'), tipoAlmoxarifado: _selectedAlmoxarifado, onRefresh: _recarregarTudo),
                 ],
             ),
             bottomNavigationBar: BottomNavigationBar(
@@ -56,17 +74,18 @@ class _HomeScreenState extends State<HomeScreen> {
                 ],
             ),
             floatingActionButton: FloatingActionButton(
-                onPressed: () {
-                    Navigator.push(context, MaterialPageRoute(builder: (context) => CadastroScreen()),
-                    ).then((value) {
-                        setState(() {});
-                    });
+                onPressed: () async{
+                    final value = await Navigator.push(context, MaterialPageRoute(builder: (context) => CadastroScreen()),
+                    );
+                    if (value == true){
+                        await _recarregarTudo();
+                    }
                 },
                 child: const Icon(Icons.add),
                 backgroundColor: Colors.green,
-            ),
-        );
-    }
+                ),
+            );
+        }
 
     void _abrirCadastro(BuildContext context) {
         showDialog(
