@@ -47,6 +47,8 @@ class _HomeScreenState extends State<HomeScreen> {
                         },
                         itemBuilder: (BuildContext context) => <PopupMenuItem<String>>[
                             PopupMenuItem(value: null, child: Text('Todos')),
+                            PopupMenuItem(value: 'caseiro', child: Text('Caseiro')),
+                            PopupMenuItem(value: 'escritorio', child: Text('Escritório')),
                             PopupMenuItem(value: 'industrial', child: Text('Industrial')),
                             PopupMenuItem(value: 'alimenticio', child: Text('Alimentício')),
                             PopupMenuItem(value: 'agropecuario', child: Text('Agropecuário')),

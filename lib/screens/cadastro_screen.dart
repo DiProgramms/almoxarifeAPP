@@ -60,10 +60,12 @@ class _CadastroScreenState extends State<CadastroScreen> {
                                 decoration: InputDecoration(labelText: 'Unidade', prefixIcon: Icon(Icons.scale)),
                             ),
                             DropdownButtonFormField<String>(
-                                value: ['industrial', 'alimenticio', 'agropecuario'].contains(_tipo) ? _tipo : 'industrial',
+                                value: ['caseiro','escritorio','industrial', 'alimenticio', 'agropecuario'].contains(_tipo) ? _tipo : 'caseiro',
                                 decoration: const InputDecoration(labelText: 'Tipo', prefixIcon: Icon(Icons.category)),
 
                                 items: const [
+                                DropdownMenuItem(value: 'caseiro', child: Text('Caseiro')),
+                                DropdownMenuItem(value: 'escritorio', child: Text('Escritório')),
                                 DropdownMenuItem(value: 'industrial', child: Text('Industrial')),
                                 DropdownMenuItem(value: 'alimenticio', child: Text('Alimentício')),
                                 DropdownMenuItem(value: 'agropecuario', child: Text('Agropecuário')),
