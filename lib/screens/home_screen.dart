@@ -97,7 +97,7 @@ class _HomeScreenState extends State<HomeScreen> {
         final opcao = await showModalBottomSheet<String>(
             context: context,
             builder: (context){
-                return SageArea(
+                return SafeArea(
                     child: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [

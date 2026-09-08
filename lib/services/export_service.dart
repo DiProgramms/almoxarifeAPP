@@ -67,7 +67,7 @@ class ExportService {
                 ]);
             }
 
-            final csv = const ListToCsvConverter().convert(rows);
+            final csv = ListToCsvConverter().convert(rows);
 
             final directory = await getTemporaryDirectory();
             final path = '${directory.path}/exportacao_almoxarife_${DateTime.now().millisecondsSinceEpoch}.csv';
