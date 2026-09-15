@@ -6,8 +6,7 @@ Nasceu daquela dificuldade clássica de organizar tudo numa tabela e fazer relat
 
 ## Funcionalidades
 
-**Cadastro** - Essa é a parte mais básica do aplicativo, funcionando da seguinte forma; 
-Pense que você tem um código específico pra cada item, ou até mesmo quiser dividir entre tipos de armazenamento, neste app você pode fazer isso, além de definir o tipo unitário pra cadastro novo, o que já movimenta o relatório e o histórico.
+**Cadastro** - Cada item recebe um código específico e pode ser separado por tipo de armazenamento. Também é possível definir a unidade de medida do item no momento do cadastro, o que já atualiza automaticamente o relatório e o histórico.
 
 **Edição** - Além do cadastro, caso você erre alguma coisa você pode deletar a inserção, ou apenas alterar o valor ou informação que seja colocado no item, lembrando que, ao alterar a quantidade de um item no cadastro irá alterar tanto o relatório quanto a parte do histórico.
 
@@ -17,4 +16,10 @@ Pense que você tem um código específico pra cada item, ou até mesmo quiser d
 
 **Histórico** - Você pode rastrear tudo que entrou e saiu, sabendo exatamente quando e quanto foi alterado.
 
-**Lista de Compras** - Aqui você pode fazer a adição de uma listinha onde poderá ser importada como espécie de compras, podendo fazer isso através de CSV(Excel), PDF, ou até mesmo uma imagem da tela, lembrando que ao exportar você também consegue exportar as informações do app!
+**Lista de Compras** - Aqui você pode adicionar uma lista que pode ser exportada em CSV (Excel), PDF, ou até mesmo como imagem da tela — lembrando que ao exportar você também leva junto as informações do app!
+
+## Tecnologias
+
+**Flutter** — Desenvolvimento do app mobile, interface e lógica de navegação entre as telas de cadastro, relatório, histórico e lista de compras.
+
+**SQFlite** — Banco de dados local, responsável por armazenar os itens cadastrados, histórico de entrada/saída e dados usados na geração dos relatórios.
